@@ -1,0 +1,406 @@
+---
+title: "Holothuria tubulosa and H. forskali in co-culture with sea bass"
+author: "Frank DAVID"
+date: '2024-12-15'
+output:
+  md_document:
+    variant: markdown_github
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+Sys.setlocale("LC_TIME", "C")
+```
+
+### R Markdown
+
+This R Markdown document is made to support the findings of the paper "Biochemical signatures of Holothuria tubulosa and Holothuria forskali in co-culture with sea bass in the Frioul Islands (France)" by David et al. (2025). 
+
+
+## Preparing the toolbox
+
+Let's begin by loading the libraries that we will require to run the analyses.
+
+```{r echo=TRUE, message=FALSE}
+library(agricolae)
+library(vegan)
+library(ade4)
+library(factoextra)
+```
+
+
+## Loading the data
+We load growth, fatty acid and stable isotope data from the GitHub server.
+
+For details on line and column headings please check the readme file.
+
+```{r}
+
+growth <- read.csv("https://raw.githubusercontent.com/DAVID-Fk/Sea-cucumber-frioul/main/WeightFrioul.csv", sep=";", header=T)
+FA <- read.csv("https://raw.githubusercontent.com/DAVID-Fk/Sea-cucumber-frioul/main/FAFrioul.csv", sep=";", header=T)
+SI <- read.csv("https://raw.githubusercontent.com/DAVID-Fk/Sea-cucumber-frioul/main/SIFrioul.csv", sep=";", header=T)
+
+```
+
+## Growth and survival
+
+```{r}
+### Let's split the dataset
+  
+pi=split(growth, growth$Date)$`16/11/21`
+pf=split(growth, growth$Date)$`11/10/22`
+  
+iweight=split(pi$Mass, paste(pi$Exp, pi$Sp))
+fweight=split(pf$Mass, paste(pf$Exp, pf$Sp))
+    	
+### Let's build a synthetic table
+    	
+tab1=matrix(data=NA, nrow=length(iweight), ncol=9, dimnames=list(names(iweight), c("Wi mean", "Wi sd", "Wf mean", "Wf sd", "t.test", "SGR", "GR", "RWG", "Survival")))
+
+for (i in 1:length(iweight)) {
+  	tab1[i, 1]=mean(iweight[[i]])
+  	tab1[i, 2]=sd(iweight[[i]])
+    tab1[i, 3]=mean(fweight[[i]])
+  	tab1[i, 4]=sd(fweight[[i]])  	
+  	tab1[i, 5]=round(t.test(iweight[[i]], fweight[[i]])$p.value, 3)
+  	tab1[i, 6]=round(log(mean(fweight[[i]])/mean(iweight[[i]]))/329*100, 3)
+  	tab1[i, 7]=round((mean(fweight[[i]])-mean(iweight[[i]]))/329, 3)
+  	tab1[i, 8]=round((mean(fweight[[i]])-mean(iweight[[i]]))/mean(iweight[[i]])*100, 2)
+  	tab1[i, 9]=round(length(fweight[[i]])/12*100, 1)
+  	}
+  	
+
+```
+
+## Fatty acids
+
+```{r}
+allFA=FA[-1,-c(1:4, which(colnames(FA)=="C23.0"))]
+rownames(allFA)=FA[-1,1]
+allFA[is.na(allFA)]=0
+
+## Percentage table
+prct=allFA/rowSums(allFA)*100
+
+## Concentrations table 
+conc=allFA/FA[-1,which(colnames(FA)=="C23.0")]*FA[-1,which(colnames(FA)=="StdC23")]/FA[-1,which(colnames(FA)=="Splmass")]
+conctot=rowSums(conc)
+
+```
+
+### Summary of sediments
+
+```{r}
+# Let's isolate sediment data
+
+sed=split(prct, substring(rownames(prct), 1, 2))$Se
+colMeans(sed)
+sedPr=sed[, colMeans(sed)>0.6]/rowSums(sed[, colMeans(sed)>0.6])*100
+  
+sedconc=split(conc, substring(rownames(conc), 1, 2))$Se[, colMeans(sed)>0.6]
+sedconctot=rowSums(sedconc)
+
+# Let's edit a summary table
+  
+summarySed=data.frame(M=aggregate(cbind(sedPr, sedconctot) , by=list(substring(names(sedconctot), 8, 10)), mean), SD=aggregate(cbind(sedPr, sedconctot), by=list(substring(names(sedconctot), 8, 10)),sd), LE=aggregate(cbind(sedPr, sedconctot), by=list(substring(names(sedconctot), 8, 10)),length))
+
+  
+```
+
+### Graphical representation (boxplot of total FA)
+
+```{r echo=FALSE, fig.width=6, fig.height=4, fig.align="center"}
+
+waerden.test(sedconctot, substring(names(sedconctot), 8, 10), console=T)
+
+#pdf(file="Fig2.pdf", width=6, height=4)
+
+par(las=1, mar=c(5,5,1,2), mfrow=c(1,1), bty="n")
+boxplot(sedconctot~substring(names(sedconctot), 8, 10), xlab="Experiment", ylab=expression(paste("Fatty acids concentration (mg g d", w^-1, ")")), ylim=c(0,2))
+text(1:4, tapply(sedconctot, substring(names(sedconctot), 8, 10), max)+0.2, labels=c("c", "b", "bc", "a"), font=1, cex=1.5)
+
+#dev.off()
+
+  
+```
+
+### Graphical representation (PCA)
+
+```{r echo=FALSE, fig.width=7.5, fig.height=6, fig.align="center"}
+
+acp=dudi.pca(sedPr, scannf = FALSE, nf = 2)
+varPCA=get_pca_var(acp)
+
+#pdf(file="Fig3.pdf", width=7.5, height=6)
+
+par(las=1, mar=c(2,2,1,2), bty="n", mfrow=c(1,1))
+plot(acp$li[,c(1,2)], acp$co[,c(1,2)], type="n", ann=F, bty="n", axes=F, ylim=c(-5, 5), xlim=c(-6, 6))
+axis(1, pos=0, at=c(seq(-5, 5)[-6]), labels=c(seq(-5, 5)[-6]), tck=0.01, padj=-4)
+axis(2, pos=0, at=c(seq(-5, 5)[-6]), labels=c(seq(-5, 5)[-6]), tck=0.01, hadj=-0.1)
+  
+
+title(xlab=paste("PC1 (", round((acp$eig/sum(acp$eig)*100)[1], 1), "%)", sep=""), line=0)
+title(ylab=paste("PC2 (", round((acp$eig/sum(acp$eig)*100)[2], 1), "%)", sep=""), line=0)
+
+arrows(x0=0, y0=0, x1=acp$co[,1]*5, y1=acp$co[,2]*5, length=0.1, col="grey40", lty=5)
+text(acp$co*5.4, labels=colnames(sedPr), col="grey40")
+
+a=ordihull(acp$li, groups=substring(rownames(acp$li), 8, 10), lty=4, label=F, display=c("sites"))
+
+points(acp$li[, 1], acp$li[, 2], pch=23, col="grey40", bg="grey80", cex=1.5)
+
+centroid=t(summary(a))
+labs=rownames(centroid)
+
+rect(xright=centroid[,1]+0.3, ybottom=centroid[,2]-0.4, xleft=centroid[,1]-0.3, ytop=centroid[,2]+0.4, col=adjustcolor("white", alpha=0.8), border="grey")
+text(centroid, labels=labs, font=2)
+  
+legend("bottomright", legend=paste("n =", nrow(acp$li)), bty="n", pt.cex=2)
+
+#dev.off()
+
+```
+Note that the figure was further modified with a vectorial graphics editor to avoid labels superposition
+
+### Summary of sea cucumbers
+ 
+```{r}
+
+# Let's isolate sea cucumbers data
+
+seacu=prct[-c(which(substring(rownames(prct), 1, 2)=="Se")),]
+totFA=rowSums(conc[-c(which(substring(rownames(prct), 1, 2)=="Se")),])
+
+# Let's define categories of FA
+  
+brFA=rowSums(seacu[, c(which(colnames(seacu)=="C15.0iso"), which(colnames(seacu)=="C15.0anteiso"), which(colnames(seacu)=="C16.0iso"))])
+SFA=rowSums(seacu[, c(which(colnames(seacu)=="C14.0"), which(colnames(seacu)=="C15.0"), which(colnames(seacu)=="C16.0"), which(colnames(seacu)=="C18.0"), which(colnames(seacu)=="C19.0"),which(colnames(seacu)=="C20.0"), which(colnames(seacu)=="C21.0"), which(colnames(seacu)=="C22.0"), which(colnames(seacu)=="C24.0"))])
+PUFA=rowSums(seacu[, c(which(colnames(seacu)=="C18.2w6"), which(colnames(seacu)=="C18.3w3"), which(colnames(seacu)=="C18.4w3"), which(colnames(seacu)=="C20.2w6"), which(colnames(seacu)=="C20.4w6"), which(colnames(seacu)=="C20.5w3"), which(colnames(seacu)=="C22.5w6"), which(colnames(seacu)=="C22.6w3"))])
+HUFA=rowSums(seacu[, c(which(colnames(seacu)=="C20.4w6"), which(colnames(seacu)=="C20.5w3"), which(colnames(seacu)=="C22.5w6"), which(colnames(seacu)=="C22.6w3"))])
+w3=rowSums(seacu[, c(which(colnames(seacu)=="C18.3w3"), which(colnames(seacu)=="C18.4w3"), which(colnames(seacu)=="C20.5w3"), which(colnames(seacu)=="C22.6w3"))])
+w6=rowSums(seacu[, c(which(colnames(seacu)=="C18.2w6"), which(colnames(seacu)=="C20.2w6"), which(colnames(seacu)=="C20.4w6"), which(colnames(seacu)=="C22.5w6"))], na.rm=T)
+LCMUFA=rowSums(seacu[, c(which(colnames(seacu)=="C20.1w9"), which(colnames(seacu)=="C20.1w7"), which(colnames(seacu)=="C22.1w11"), which(colnames(seacu)=="C22.1w9"), which(colnames(seacu)=="C23.1w9"), which(colnames(seacu)=="C24.1w9"))])
+MUFA=rowSums(seacu[, c(which(colnames(seacu)=="C16.1w7"), which(colnames(seacu)=="C18.1w9"), which(colnames(seacu)=="C18.1w7"), which(colnames(seacu)=="C20.1w9"), which(colnames(seacu)=="C20.1w7"), which(colnames(seacu)=="C22.1w11"), which(colnames(seacu)=="C22.1w9"), which(colnames(seacu)=="C23.1w9"), which(colnames(seacu)=="C24.1w9"))])
+
+# Let's edit a summary table
+
+summaryFA=data.frame(M=aggregate(cbind(seacu, brFA, SFA, MUFA, LCMUFA, PUFA, HUFA, w3, w6, totFA) , by=list(substring(rownames(seacu), 1, 2)), mean), SD=aggregate(cbind(seacu, brFA, SFA, MUFA, LCMUFA, PUFA, HUFA, w3, w6, totFA), by=list(substring(rownames(seacu), 1, 2)),sd), LE=aggregate(cbind(seacu, brFA, SFA, MUFA, LCMUFA, PUFA, HUFA, w3, w6, totFA), by=list(substring(rownames(seacu), 1, 2)),length))
+
+```
+
+
+### Principal Component Analysis of fatty acid compositions of sea cucumbers
+#### Holothuria tubulosa
+
+```{r, echo=FALSE, fig.width=7.5, fig.height=12, fig.align="center"}
+
+#svg(file="Fig4.svg", width=7.5, height=12)
+  
+par(las=1, mar=c(2,2,2,2), bty="n", mfrow=c(2,1), oma=c(0,0,2,0))
+
+### Part a
+
+  acp=dudi.pca(seacu[which(substring(rownames(seacu), 1, 2)=="HT"),], scannf = F, nf = 2, center=T, scale=T)
+  varPCA=get_pca_var(acp)
+  
+  plot(acp$li[,c(1,2)], acp$co[,c(1,2)], type="n", ann=F, bty="n", axes=F, xlim=c(-7,7), ylim=c(-5,5))
+  axis(1, pos=0, at=c(seq(-7, 7)[-8]), labels=c(seq(-7, 7)[-8]), tck=0.01, padj=-4)
+  axis(2, pos=0, at=c(seq(-5, 5)[-6]), labels=c(seq(-5, 5)[-6]), tck=0.01, hadj=-0.1)
+
+  title(main=expression(bolditalic("Holothuria tubulosa")), line=1, cex.main=2)
+  title(xlab=paste("PC1 (", round((acp$eig/sum(acp$eig)*100)[1], 1), "%)", sep=""), line=0)
+  title(ylab=paste("PC2 (", round((acp$eig/sum(acp$eig)*100)[2], 1), "%)", sep=""), line=0)
+  
+  arrows(x0=0, y0=0, x1=acp$co[,1][which(varPCA$contrib[,1]>100/nrow(varPCA$contrib)*1.5)]*6, y1=acp$co[,2][which(varPCA$contrib[,1]>100/nrow(varPCA$contrib)*1.5)]*6, length=0.1, col="grey40", lty=5)
+  arrows(x0=0, y0=0, x1=acp$co[,1][which(varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.5)]*6, y1=acp$co[,2][which(varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.5)]*6, length=0.1, col="grey40", lty=5)
+
+  text(acp$co[,1][which(varPCA$contrib[,1]>100/nrow(varPCA$contrib)*1.5)]*6.8, acp$co[,2][which(varPCA$contrib[,1]>100/nrow(varPCA$contrib)*1.5)]*6.8, 
+  labels=substring(names(which(varPCA$contrib[,1]>100/nrow(varPCA$contrib)*1.5)), 2, nchar(names(which(varPCA$contrib[,1]>100/nrow(varPCA$contrib)*1.5)))), col="grey40")
+  text(acp$co[,1][which(varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.5)]*6.2, acp$co[,2][which(varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.5)]*6.2, labels=substring(names(which(varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.5)), 2, nchar(names(which(varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.5)))), col="grey40")
+
+  a=ordihull(acp$li, groups=substring(rownames(acp$li), 8, 10), lty=4, label=F, display=c("sites"))
+  points(acp$li[, 1], acp$li[, 2], pch=21, col="grey40", bg="grey80", cex=1.5)
+
+  centroid=t(summary(a))
+  labs=rownames(centroid)
+
+  rect(xright=centroid[,1]+0.5, ybottom=centroid[,2]-0.4, xleft=centroid[,1]-0.5, ytop=centroid[,2]+0.4, col=adjustcolor("white", alpha=0.8), border="grey")
+  text(centroid, labels=c("E2", "E1", "E3", "R", "Wo", "Wi"), font=2)
+  legend("topright", legend=expression(bold("a")), bty="n", cex=3.5, inset=c(0, -0.1))
+  legend("topleft", legend=c("Body wall"), pch=21, col="grey40", text.col="black", pt.bg="grey80", bty="n", pt.cex=2, inset=c(0.02, 0))
+  legend("bottomright", legend=paste("n =", nrow(acp$li)), bty="n", pt.cex=2)
+  
+  ### Part b
+  
+  acp=dudi.pca(seacu[which(substring(rownames(seacu), 1, 2)=="MT"),], scannf = F, nf = 2, center=T, scale=T)
+  varPCA=get_pca_var(acp)
+  
+  plot(acp$li[,c(1,2)], acp$co[,c(1,2)], type="n", ann=F, bty="n", axes=F, xlim=c(-7,7), ylim=c(-5,5))
+  axis(1, pos=0, at=c(seq(-7, 7)[-8]), labels=c(seq(-7, 7)[-8]), tck=0.01, padj=-4)
+  axis(2, pos=0, at=c(seq(-5, 5)[-6]), labels=c(seq(-5, 5)[-6]), tck=0.01, hadj=-0.1)
+
+  title(xlab=paste("PC1 (", round((acp$eig/sum(acp$eig)*100)[1], 1), "%)", sep=""), line=0)
+  title(ylab=paste("PC2 (", round((acp$eig/sum(acp$eig)*100)[2], 1), "%)", sep=""), line=0)
+  
+  # Note that the graphic is inversed to better highlight similarities with body wall data
+  arrows(x0=0, y0=0, x1=-acp$co[,1][which(varPCA$contrib[,1]>100/nrow(varPCA$contrib)*1.5)]*6, y1=-acp$co[,2][which(varPCA$contrib[,1]>100/nrow(varPCA$contrib)*1.5)]*6, length=0.1, col="grey40", lty=5)
+  arrows(x0=0, y0=0, x1=-acp$co[,1][which(varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.5)]*6, y1=-acp$co[,2][which(varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.5)]*6, length=0.1, col="grey40", lty=5)
+
+  text(-acp$co[,1][which(varPCA$contrib[,1]>100/nrow(varPCA$contrib)*1.5)]*6.8, -acp$co[,2][which(varPCA$contrib[,1]>100/nrow(varPCA$contrib)*1.5)]*6.8, 
+  labels=substring(names(which(varPCA$contrib[,1]>100/nrow(varPCA$contrib)*1.5)), 2, nchar(names(which(varPCA$contrib[,1]>100/nrow(varPCA$contrib)*1.5)))), col="grey40")
+  text(-acp$co[,1][which(varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.5)]*6.2, -acp$co[,2][which(varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.5)]*6.2, labels=substring(names(which(varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.5)), 2, nchar(names(which(varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.5)))), col="grey40")
+
+  a=ordihull(-acp$li, groups=substring(rownames(acp$li), 8, 10), lty=4, label=F, display=c("sites"))
+  points(-acp$li[, 1], -acp$li[, 2], pch=22, col="grey40", bg="grey80", cex=1.5)
+
+  centroid=t(summary(a))
+  labs=rownames(centroid)
+
+  rect(xright=centroid[,1]+0.5, ybottom=centroid[,2]-0.4, xleft=centroid[,1]-0.5, ytop=centroid[,2]+0.4, col=adjustcolor("white", alpha=0.8), border="grey")
+  text(centroid, labels=c("E2", "E1", "E3", "R", "Wo", "Wi"), font=2)
+  legend("topright", legend=expression(bold("b")), bty="n", cex=3.5, inset=c(0, -0.1))
+  legend("topleft", legend=c("Muscle bands"), pch=22, col="grey40", text.col="black", pt.bg="grey80", bty="n", pt.cex=2, inset=c(0.02, 0))
+  legend("bottomright", legend=paste("n =", nrow(acp$li)), bty="n", pt.cex=2)
+
+#dev.off()
+
+
+```
+
+Note that the figure was further modified with a vectorial graphics editor to avoid labels superposition
+
+#### Holothuria forskali
+
+```{r, echo=FALSE, fig.width=7.5, fig.height=12, fig.align="center"}
+
+#svg(file="Fig5.svg", width=7.5, height=12)
+  
+par(las=1, mar=c(2,2,2,2), bty="n", mfrow=c(2,1), oma=c(0,0,2,0))
+
+### Part a
+
+  acp=dudi.pca(seacu[which(substring(rownames(seacu), 1, 2)=="BF"),], scannf = F, nf = 2, center=T, scale=T)
+  varPCA=get_pca_var(acp)
+  
+  plot(acp$li[,c(1,2)], acp$co[,c(1,2)], type="n", ann=F, bty="n", axes=F, xlim=c(-8,7), ylim=c(-6,5))
+  axis(1, pos=0, at=c(seq(-8, 7)[-9]), labels=c(seq(-8, 7)[-9]), tck=0.01, padj=-4)
+  axis(2, pos=0, at=c(seq(-6, 5)[-7]), labels=c(seq(-6, 5)[-7]), tck=0.01, hadj=-0.1)
+
+  title(main=expression(bolditalic("Holothuria forskali")), line=1, cex.main=2)
+  title(xlab=paste("PC1 (", round((acp$eig/sum(acp$eig)*100)[1], 1), "%)", sep=""), line=0)
+  title(ylab=paste("PC2 (", round((acp$eig/sum(acp$eig)*100)[2], 1), "%)", sep=""), line=0)
+  
+  arrows(x0=0, y0=0, x1=acp$co[,1][which(varPCA$contrib[,1]>100/nrow(varPCA$contrib)*1.5)]*6, y1=acp$co[,2][which(varPCA$contrib[,1]>100/nrow(varPCA$contrib)*1.5)]*6, length=0.1, col="grey40", lty=5)
+  arrows(x0=0, y0=0, x1=acp$co[,1][which(varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.5)]*6, y1=acp$co[,2][which(varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.5)]*6, length=0.1, col="grey40", lty=5)
+
+  text(acp$co[,1][which(varPCA$contrib[,1]>100/nrow(varPCA$contrib)*1.5)]*6.8, acp$co[,2][which(varPCA$contrib[,1]>100/nrow(varPCA$contrib)*1.5)]*6.8, 
+  labels=substring(names(which(varPCA$contrib[,1]>100/nrow(varPCA$contrib)*1.5)), 2, nchar(names(which(varPCA$contrib[,1]>100/nrow(varPCA$contrib)*1.5)))), col="grey40")
+  text(acp$co[,1][which(varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.5)]*6.2, acp$co[,2][which(varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.5)]*6.2, labels=substring(names(which(varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.5)), 2, nchar(names(which(varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.5)))), col="grey40")
+
+  a=ordihull(acp$li, groups=substring(rownames(acp$li), 8, 10), lty=4, label=F, display=c("sites"))
+  points(acp$li[, 1], acp$li[, 2], pch=21, col="grey40", bg="grey20", cex=1.5)
+
+  centroid=t(summary(a))
+  labs=rownames(centroid)
+
+  rect(xright=centroid[,1]+0.5, ybottom=centroid[,2]-0.4, xleft=centroid[,1]-0.5, ytop=centroid[,2]+0.4, col=adjustcolor("white", alpha=0.8), border="grey")
+  text(centroid, labels=c("E2", "E1", "E3", "R", "Wo", "Wi"), font=2)
+  legend("topright", legend=expression(bold("a")), bty="n", cex=3.5, inset=c(0, -0.1))
+  legend("topleft", legend=c("Body wall"), pch=21, col="grey40", text.col="black", pt.bg="grey20", bty="n", pt.cex=2, inset=c(0.02, 0))
+  legend("bottomright", legend=paste("n =", nrow(acp$li)), bty="n", pt.cex=2)
+  
+  ### Part b
+  
+  acp=dudi.pca(seacu[which(substring(rownames(seacu), 1, 2)=="MF"),], scannf = F, nf = 2, center=T, scale=T)
+  varPCA=get_pca_var(acp)
+  
+  plot(acp$li[,c(1,2)], acp$co[,c(1,2)], type="n", ann=F, bty="n", axes=F, xlim=c(-8,7), ylim=c(-6,5))
+  axis(1, pos=0, at=c(seq(-8, 7)[-9]), labels=c(seq(-8, 7)[-9]), tck=0.01, padj=-4)
+  axis(2, pos=0, at=c(seq(-6, 5)[-7]), labels=c(seq(-6, 5)[-7]), tck=0.01, hadj=-0.1)
+
+  title(xlab=paste("PC1 (", round((acp$eig/sum(acp$eig)*100)[1], 1), "%)", sep=""), line=0)
+  title(ylab=paste("PC2 (", round((acp$eig/sum(acp$eig)*100)[2], 1), "%)", sep=""), line=0)
+  
+  arrows(x0=0, y0=0, x1=acp$co[,1][which(varPCA$contrib[,1]>100/nrow(varPCA$contrib)*1.5)]*6, y1=-acp$co[,2][which(varPCA$contrib[,1]>100/nrow(varPCA$contrib)*1.5)]*6, length=0.1, col="grey40", lty=5)
+  arrows(x0=0, y0=0, x1=acp$co[,1][which(varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.5)]*6, y1=-acp$co[,2][which(varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.5)]*6, length=0.1, col="grey40", lty=5)
+
+  text(acp$co[,1][which(varPCA$contrib[,1]>100/nrow(varPCA$contrib)*1.5)]*6.8, -acp$co[,2][which(varPCA$contrib[,1]>100/nrow(varPCA$contrib)*1.5)]*6.8, 
+  labels=substring(names(which(varPCA$contrib[,1]>100/nrow(varPCA$contrib)*1.5)), 2, nchar(names(which(varPCA$contrib[,1]>100/nrow(varPCA$contrib)*1.5)))), col="grey40")
+  text(acp$co[,1][which(varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.5)]*6.2, -acp$co[,2][which(varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.5)]*6.2, labels=substring(names(which(varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.5)), 2, nchar(names(which(varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.5)))), col="grey40")
+
+  a=ordihull(cbind(acp$li[, 1], -acp$li[, 2]), groups=substring(rownames(acp$li), 8, 10), lty=4, label=F, display=c("sites"))
+  points(acp$li[, 1], -acp$li[, 2], pch=22, col="grey40", bg="grey20", cex=1.5)
+
+  centroid=t(summary(a))
+  labs=rownames(centroid)
+
+  rect(xright=centroid[,1]+0.5, ybottom=centroid[,2]-0.4, xleft=centroid[,1]-0.5, ytop=centroid[,2]+0.4, col=adjustcolor("white", alpha=0.8), border="grey")
+  text(centroid, labels=c("E2", "E1", "E3", "R", "Wo", "Wi"), font=2)
+  legend("topright", legend=expression(bold("b")), bty="n", cex=3.5, inset=c(0, -0.1))
+  legend("topleft", legend=c("Muscle bands"), pch=22, col="grey40", text.col="black", pt.bg="grey20", bty="n", pt.cex=2, inset=c(0.02, 0))
+  legend("bottomright", legend=paste("n =", nrow(acp$li)), bty="n", pt.cex=2)
+
+#dev.off()
+
+```
+
+Note that the figure was further modified with a vectorial graphics editor to avoid labels superposition
+
+## Stable isotopes
+### Graphical representation (biplot 13C-15N)
+
+```{r echo=FALSE, fig.width=7.5, fig.height=12, fig.align="center"}
+
+#pdf(file="Fig6.pdf", width=7.5, height=12)
+
+par(las=1, mar=c(5,5,2,2), bty="n", mfrow=c(2,1), oma=c(0,0,2,0), cex.lab=1.5)
+
+### Part a
+
+Htu=SI[c(which(substring(SI$Id, 2, 2)=="T")),]
+
+plot(Htu$X13C, Htu$X15N, bty="n", xlim=c(-24,-12), ylim=c(4, 12), xlab=expression(paste(delta^13, "C")), ylab=expression(paste(delta^15, "N")), type="n")
+
+title(main=expression(bolditalic("Holothuria tubulosa")), line=1, cex.main=2)
+  
+a=ordihull(cbind(Htu$X13C, Htu$X15N), groups=paste(substring(Htu$Exp, 1, 2), substring(Htu$Id, 1, 2)), lty=4, label=F, display=c("sites"))
+points(Htu$X13C, Htu$X15N,pch=c(21, 22)[as.factor(substring(Htu$Id, 1, 2))], bg="grey80", col="grey40", cex=1.5)
+points(SI$X13C[c(which(substring(SI$Id, 1, 1)=="F"))], SI$X15N[c(which(substring(SI$Id, 1, 1)=="F"))], pch=c(8, 8, 3, 8, 8, 8, 3), cex=1.5)
+
+centroid=t(summary(a))
+rect(xright=centroid[,1]+0.45, ybottom=centroid[,2]-0.35, xleft=centroid[,1]-0.45, ytop=centroid[,2]+0.35, col=adjustcolor("white", alpha=0.7), border="grey")
+text(centroid, labels=c("R", "R", "E1", "E1", "E2", "E2", "E3", "E3", "Wi", "Wi", "Wo", "Wo"), font=2)
+  
+legend("topright", legend=expression(bold("a")), bty="n", cex=3.5, inset=c(0, -0.1))
+
+legend("topleft", legend=c("Body wall", "Muscle bands", "Feed", "Fish faeces"), pch=c(21, 22, 3, 8), col="grey40", text.col="black", pt.bg="grey80", bty="n", pt.cex=2, inset=c(0.03, 0.01))
+
+legend("bottomright", legend=paste("n =", nrow(SI[-c(which(substring(SI$Id, 2, 2)=="F")),])), bty="n", pt.cex=2)
+
+
+### Part b
+
+Hfo=SI[c(which(substring(SI$Id, 2, 2)=="F")),]
+
+plot(Hfo$X13C, Hfo$X15N, bty="n", xlim=c(-24,-12), ylim=c(4, 12), xlab=expression(paste(delta^13, "C")), ylab=expression(paste(delta^15, "N")), type="n")
+
+title(main=expression(bolditalic("Holothuria forskali")), line=1, cex.main=2)
+  
+a=ordihull(cbind(Hfo$X13C, Hfo$X15N), groups=paste(substring(Hfo$Exp, 1, 2), substring(Hfo$Id, 1, 2)), lty=4, label=F, display=c("sites"))
+points(Hfo$X13C, Hfo$X15N,pch=c(21, 22)[as.factor(substring(Hfo$Id, 1, 2))], bg="grey20", col="grey40", cex=1.5)
+points(SI$X13C[c(which(substring(SI$Id, 1, 1)=="F"))], SI$X15N[c(which(substring(SI$Id, 1, 1)=="F"))], pch=c(8, 8, 3, 8, 8, 8, 3), cex=1.5)
+
+centroid=t(summary(a))
+rect(xright=centroid[,1]+0.45, ybottom=centroid[,2]-0.35, xleft=centroid[,1]-0.45, ytop=centroid[,2]+0.35, col=adjustcolor("white", alpha=0.7), border="grey")
+text(centroid, labels=c("R", "R", "E1", "E1", "E2", "E2", "E3", "E3", "Wi", "Wi", "Wo", "Wo"), font=2)
+  
+legend("topright", legend=expression(bold("b")), bty="n", cex=3.5, inset=c(0, -0.1))
+
+legend("topleft", legend=c("Body wall", "Muscle bands", "Feed", "Fish faeces"), pch=c(21, 22, 3, 8), col="grey40", text.col="black", pt.bg="grey20", bty="n", pt.cex=2, inset=c(0.03, 0.01))
+
+legend("bottomright", legend=paste("n =", nrow(SI[-c(which(substring(SI$Id, 2, 2)=="T")),])), bty="n", pt.cex=2)
+
+
+#dev.off()
+  
+```
