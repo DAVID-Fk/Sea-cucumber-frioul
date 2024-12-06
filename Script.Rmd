@@ -160,6 +160,7 @@ legend("bottomright", legend=paste("n =", nrow(acp$li)), bty="n", pt.cex=2)
 #dev.off()
 
 ```
+
 Note that the figure was further modified with a vectorial graphics editor to avoid labels superposition
 
 ### Summary of sea cucumbers

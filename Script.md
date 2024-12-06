@@ -141,7 +141,9 @@ summarySed=data.frame(M=aggregate(cbind(sedPr, sedconctot) , by=list(substring(n
 
 ### Graphical representation (PCA)
 
-<img src="Script_files/figure-markdown_github/unnamed-chunk-7-1.png" style="display: block; margin: auto;" /> Note that the figure was further modified with a vectorial graphics editor to avoid labels superposition
+<img src="Script_files/figure-markdown_github/unnamed-chunk-7-1.png" style="display: block; margin: auto;" />
+
+Note that the figure was further modified with a vectorial graphics editor to avoid labels superposition
 
 ### Summary of sea cucumbers
 
