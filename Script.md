@@ -99,13 +99,8 @@ sedPr=sed[, colMeans(sed)>0.6]/rowSums(sed[, colMeans(sed)>0.6])*100
   
 sedconc=split(conc, substring(rownames(conc), 1, 2))$Se[, colMeans(sed)>0.6]
 sedconctot=rowSums(sedconc)
-
-# Let's edit a summary table
-  
-summarySed=data.frame(M=aggregate(cbind(sedPr, sedconctot) , by=list(substring(names(sedconctot), 8, 10)), mean), SD=aggregate(cbind(sedPr, sedconctot), by=list(substring(names(sedconctot), 8, 10)),sd), LE=aggregate(cbind(sedPr, sedconctot), by=list(substring(names(sedconctot), 8, 10)),length))
+waerden.test(sedconctot, substring(names(sedconctot), 8, 10), console=T)
 ```
-
-### Graphical representation (boxplot of total FA)
 
     ## 
     ## Study: sedconctot ~ substring(names(sedconctot), 8, 10)
@@ -137,11 +132,15 @@ summarySed=data.frame(M=aggregate(cbind(sedPr, sedconctot) , by=list(substring(n
     ## E3 -0.4470647     bc
     ## E1 -0.8042747      c
 
+``` r
+# Let's edit a summary table
+  
+summarySed=data.frame(M=aggregate(cbind(sedPr, sedconctot) , by=list(substring(names(sedconctot), 8, 10)), mean), SD=aggregate(cbind(sedPr, sedconctot), by=list(substring(names(sedconctot), 8, 10)),sd), LE=aggregate(cbind(sedPr, sedconctot), by=list(substring(names(sedconctot), 8, 10)),length))
+```
+
+### Graphical representation
+
 <img src="Script_files/figure-markdown_github/unnamed-chunk-6-1.png" style="display: block; margin: auto;" />
-
-### Graphical representation (PCA)
-
-<img src="Script_files/figure-markdown_github/unnamed-chunk-7-1.png" style="display: block; margin: auto;" />
 
 Note that the figure was further modified with a vectorial graphics editor to avoid labels superposition
 
@@ -173,13 +172,13 @@ summaryFA=data.frame(M=aggregate(cbind(seacu, brFA, SFA, MUFA, LCMUFA, PUFA, HUF
 
 #### Holothuria tubulosa
 
-<img src="Script_files/figure-markdown_github/unnamed-chunk-9-1.png" style="display: block; margin: auto;" />
+<img src="Script_files/figure-markdown_github/unnamed-chunk-8-1.png" style="display: block; margin: auto;" />
 
 Note that the figure was further modified with a vectorial graphics editor to avoid labels superposition
 
 #### Holothuria forskali
 
-<img src="Script_files/figure-markdown_github/unnamed-chunk-10-1.png" style="display: block; margin: auto;" />
+<img src="Script_files/figure-markdown_github/unnamed-chunk-9-1.png" style="display: block; margin: auto;" />
 
 Note that the figure was further modified with a vectorial graphics editor to avoid labels superposition
 
@@ -188,4 +187,4 @@ Stable isotopes
 
 ### Graphical representation (biplot 13C-15N)
 
-<img src="Script_files/figure-markdown_github/unnamed-chunk-11-1.png" style="display: block; margin: auto;" />
+<img src="Script_files/figure-markdown_github/unnamed-chunk-10-1.png" style="display: block; margin: auto;" />
