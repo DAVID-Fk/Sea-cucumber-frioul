@@ -55,14 +55,14 @@ fweight=split(pf$Mass, paste(pf$Exp, pf$Sp))
     	
 ### Let's build a synthetic table
     	
-tab1=matrix(data=NA, nrow=length(iweight), ncol=9, dimnames=list(names(iweight), c("Wi mean", "Wi sd", "Wf mean", "Wf sd", "t.test", "SGR", "GR", "RWG", "Survival")))
+tab1=matrix(data=NA, nrow=length(iweight), ncol=9, dimnames=list(names(iweight), c("Wi mean", "Wi sd", "Wf mean", "Wf sd", "wilcox.test", "SGR", "GR", "RWG", "Survival")))
 
 for (i in 1:length(iweight)) {
   	tab1[i, 1]=mean(iweight[[i]])
   	tab1[i, 2]=sd(iweight[[i]])
     tab1[i, 3]=mean(fweight[[i]])
   	tab1[i, 4]=sd(fweight[[i]])  	
-  	tab1[i, 5]=round(t.test(iweight[[i]], fweight[[i]])$p.value, 3)
+  	tab1[i, 5]=round(wilcox.test(iweight[[i]], fweight[[i]])$p.value, 3)
   	tab1[i, 6]=round(log(mean(fweight[[i]])/mean(iweight[[i]]))/329*100, 3)
   	tab1[i, 7]=round((mean(fweight[[i]])-mean(iweight[[i]]))/329, 3)
   	tab1[i, 8]=round((mean(fweight[[i]])-mean(iweight[[i]]))/mean(iweight[[i]])*100, 2)
@@ -139,7 +139,7 @@ title(ylab=paste("PC2 (", round((acp$eig/sum(acp$eig)*100)[2], 1), "%)", sep="")
 arrows(x0=0, y0=0, x1=acp$co[,1]*5, y1=acp$co[,2]*5, length=0.1, col="grey40", lty=5)
 text(acp$co*5.4, labels=colnames(sedPr), col="grey40")
 
-a=ordihull(acp$li, groups=substring(rownames(acp$li), 8, 10), lty=4, label=F, display=c("sites"))
+a=ordihull(acp$li, groups=substring(rownames(acp$li), 8, 10), lty=4, label=F, display=c("sites"), draw="polygon", col="white", alpha=200)
 
 points(acp$li[, 1], acp$li[, 2], pch=23, col="grey40", bg="grey80", cex=1.5)
 
@@ -215,14 +215,14 @@ par(las=1, mar=c(2,2,2,2), bty="n", mfrow=c(2,1), oma=c(0,0,2,0))
   labels=substring(names(which(varPCA$contrib[,1]>100/nrow(varPCA$contrib)*1.5)), 2, nchar(names(which(varPCA$contrib[,1]>100/nrow(varPCA$contrib)*1.5)))), col="grey40")
   text(acp$co[,1][which(varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.5)]*6.2, acp$co[,2][which(varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.5)]*6.2, labels=substring(names(which(varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.5)), 2, nchar(names(which(varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.5)))), col="grey40")
 
-  a=ordihull(acp$li, groups=substring(rownames(acp$li), 8, 10), lty=4, label=F, display=c("sites"))
+a=ordihull(acp$li, groups=substring(rownames(acp$li), 8, 10), lty=4, label=F, display=c("sites"), draw="polygon", col="white", alpha=200)
   points(acp$li[, 1], acp$li[, 2], pch=21, col="grey40", bg="grey80", cex=1.5)
 
   centroid=t(summary(a))
   labs=rownames(centroid)
 
   rect(xright=centroid[,1]+0.5, ybottom=centroid[,2]-0.4, xleft=centroid[,1]-0.5, ytop=centroid[,2]+0.4, col=adjustcolor("white", alpha=0.8), border="grey")
-  text(centroid, labels=c("E2", "E1", "E3", "R", "Wo", "Wi"), font=2)
+  text(centroid, labels=c("E2", "E1", "E3", "C", "Wo", "Wi"), font=2)
   legend("topright", legend=expression(bold("a")), bty="n", cex=3.5, inset=c(0, -0.1))
   legend("topleft", legend=c("Body wall"), pch=21, col="grey40", text.col="black", pt.bg="grey80", bty="n", pt.cex=2, inset=c(0.02, 0))
   legend("bottomright", legend=paste("n =", nrow(acp$li)), bty="n", pt.cex=2)
@@ -247,14 +247,14 @@ par(las=1, mar=c(2,2,2,2), bty="n", mfrow=c(2,1), oma=c(0,0,2,0))
   labels=substring(names(which(varPCA$contrib[,1]>100/nrow(varPCA$contrib)*1.5)), 2, nchar(names(which(varPCA$contrib[,1]>100/nrow(varPCA$contrib)*1.5)))), col="grey40")
   text(-acp$co[,1][which(varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.5)]*6.2, -acp$co[,2][which(varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.5)]*6.2, labels=substring(names(which(varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.5)), 2, nchar(names(which(varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.5)))), col="grey40")
 
-  a=ordihull(-acp$li, groups=substring(rownames(acp$li), 8, 10), lty=4, label=F, display=c("sites"))
+a=ordihull(acp$li, groups=substring(rownames(acp$li), 8, 10), lty=4, label=F, display=c("sites"), draw="polygon", col="white", alpha=200)
   points(-acp$li[, 1], -acp$li[, 2], pch=22, col="grey40", bg="grey80", cex=1.5)
 
   centroid=t(summary(a))
   labs=rownames(centroid)
 
   rect(xright=centroid[,1]+0.5, ybottom=centroid[,2]-0.4, xleft=centroid[,1]-0.5, ytop=centroid[,2]+0.4, col=adjustcolor("white", alpha=0.8), border="grey")
-  text(centroid, labels=c("E2", "E1", "E3", "R", "Wo", "Wi"), font=2)
+  text(centroid, labels=c("E2", "E1", "E3", "C", "Wo", "Wi"), font=2)
   legend("topright", legend=expression(bold("b")), bty="n", cex=3.5, inset=c(0, -0.1))
   legend("topleft", legend=c("Muscle bands"), pch=22, col="grey40", text.col="black", pt.bg="grey80", bty="n", pt.cex=2, inset=c(0.02, 0))
   legend("bottomright", legend=paste("n =", nrow(acp$li)), bty="n", pt.cex=2)
@@ -301,7 +301,7 @@ par(las=1, mar=c(2,2,2,2), bty="n", mfrow=c(2,1), oma=c(0,0,2,0))
   labs=rownames(centroid)
 
   rect(xright=centroid[,1]+0.5, ybottom=centroid[,2]-0.4, xleft=centroid[,1]-0.5, ytop=centroid[,2]+0.4, col=adjustcolor("white", alpha=0.8), border="grey")
-  text(centroid, labels=c("E2", "E1", "E3", "R", "Wo", "Wi"), font=2)
+  text(centroid, labels=c("E2", "E1", "E3", "C", "Wo", "Wi"), font=2)
   legend("topright", legend=expression(bold("a")), bty="n", cex=3.5, inset=c(0, -0.1))
   legend("topleft", legend=c("Body wall"), pch=21, col="grey40", text.col="black", pt.bg="grey20", bty="n", pt.cex=2, inset=c(0.02, 0))
   legend("bottomright", legend=paste("n =", nrow(acp$li)), bty="n", pt.cex=2)
@@ -332,7 +332,7 @@ par(las=1, mar=c(2,2,2,2), bty="n", mfrow=c(2,1), oma=c(0,0,2,0))
   labs=rownames(centroid)
 
   rect(xright=centroid[,1]+0.5, ybottom=centroid[,2]-0.4, xleft=centroid[,1]-0.5, ytop=centroid[,2]+0.4, col=adjustcolor("white", alpha=0.8), border="grey")
-  text(centroid, labels=c("E2", "E1", "E3", "R", "Wo", "Wi"), font=2)
+  text(centroid, labels=c("E2", "E1", "E3", "C", "Wo", "Wi"), font=2)
   legend("topright", legend=expression(bold("b")), bty="n", cex=3.5, inset=c(0, -0.1))
   legend("topleft", legend=c("Muscle bands"), pch=22, col="grey40", text.col="black", pt.bg="grey20", bty="n", pt.cex=2, inset=c(0.02, 0))
   legend("bottomright", legend=paste("n =", nrow(acp$li)), bty="n", pt.cex=2)
@@ -360,13 +360,13 @@ plot(Htu$X13C, Htu$X15N, bty="n", xlim=c(-24,-12), ylim=c(4, 12), xlab=expressio
 
 title(main=expression(bolditalic("Holothuria tubulosa")), line=1, cex.main=2)
   
-a=ordihull(cbind(Htu$X13C, Htu$X15N), groups=paste(substring(Htu$Exp, 1, 2), substring(Htu$Id, 1, 2)), lty=4, label=F, display=c("sites"))
+a=ordihull(cbind(Htu$X13C, Htu$X15N), groups=paste(substring(Htu$Exp, 1, 2), substring(Htu$Id, 1, 2)), lty=4, label=F, display=c("sites"), draw="polygon", col="white", alpha=200)
 points(Htu$X13C, Htu$X15N,pch=c(21, 22)[as.factor(substring(Htu$Id, 1, 2))], bg="grey80", col="grey40", cex=1.5)
 points(SI$X13C[c(which(substring(SI$Id, 1, 1)=="F"))], SI$X15N[c(which(substring(SI$Id, 1, 1)=="F"))], pch=c(8, 8, 3, 8, 8, 8, 3), cex=1.5)
 
 centroid=t(summary(a))
 rect(xright=centroid[,1]+0.45, ybottom=centroid[,2]-0.35, xleft=centroid[,1]-0.45, ytop=centroid[,2]+0.35, col=adjustcolor("white", alpha=0.7), border="grey")
-text(centroid, labels=c("R", "R", "E1", "E1", "E2", "E2", "E3", "E3", "Wi", "Wi", "Wo", "Wo"), font=2)
+text(centroid, labels=c("C", "C", "E1", "E1", "E2", "E2", "E3", "E3", "Wi", "Wi", "Wo", "Wo"), font=2)
   
 legend("topright", legend=expression(bold("a")), bty="n", cex=3.5, inset=c(0, -0.1))
 
@@ -383,13 +383,13 @@ plot(Hfo$X13C, Hfo$X15N, bty="n", xlim=c(-24,-12), ylim=c(4, 12), xlab=expressio
 
 title(main=expression(bolditalic("Holothuria forskali")), line=1, cex.main=2)
   
-a=ordihull(cbind(Hfo$X13C, Hfo$X15N), groups=paste(substring(Hfo$Exp, 1, 2), substring(Hfo$Id, 1, 2)), lty=4, label=F, display=c("sites"))
+a=ordihull(cbind(Hfo$X13C, Hfo$X15N), groups=paste(substring(Hfo$Exp, 1, 2), substring(Hfo$Id, 1, 2)), lty=4, label=F, display=c("sites"), draw="polygon", col="white", alpha=200)
 points(Hfo$X13C, Hfo$X15N,pch=c(21, 22)[as.factor(substring(Hfo$Id, 1, 2))], bg="grey20", col="grey40", cex=1.5)
 points(SI$X13C[c(which(substring(SI$Id, 1, 1)=="F"))], SI$X15N[c(which(substring(SI$Id, 1, 1)=="F"))], pch=c(8, 8, 3, 8, 8, 8, 3), cex=1.5)
 
 centroid=t(summary(a))
 rect(xright=centroid[,1]+0.45, ybottom=centroid[,2]-0.35, xleft=centroid[,1]-0.45, ytop=centroid[,2]+0.35, col=adjustcolor("white", alpha=0.7), border="grey")
-text(centroid, labels=c("R", "R", "E1", "E1", "E2", "E2", "E3", "E3", "Wi", "Wi", "Wo", "Wo"), font=2)
+text(centroid, labels=c("C", "C", "E1", "E1", "E2", "E2", "E3", "E3", "Wi", "Wi", "Wo", "Wo"), font=2)
   
 legend("topright", legend=expression(bold("b")), bty="n", cex=3.5, inset=c(0, -0.1))
 

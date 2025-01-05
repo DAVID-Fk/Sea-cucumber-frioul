@@ -41,20 +41,35 @@ fweight=split(pf$Mass, paste(pf$Exp, pf$Sp))
         
 ### Let's build a synthetic table
         
-tab1=matrix(data=NA, nrow=length(iweight), ncol=9, dimnames=list(names(iweight), c("Wi mean", "Wi sd", "Wf mean", "Wf sd", "t.test", "SGR", "GR", "RWG", "Survival")))
+tab1=matrix(data=NA, nrow=length(iweight), ncol=9, dimnames=list(names(iweight), c("Wi mean", "Wi sd", "Wf mean", "Wf sd", "wilcox.test", "SGR", "GR", "RWG", "Survival")))
 
 for (i in 1:length(iweight)) {
     tab1[i, 1]=mean(iweight[[i]])
     tab1[i, 2]=sd(iweight[[i]])
     tab1[i, 3]=mean(fweight[[i]])
     tab1[i, 4]=sd(fweight[[i]])     
-    tab1[i, 5]=round(t.test(iweight[[i]], fweight[[i]])$p.value, 3)
+    tab1[i, 5]=round(wilcox.test(iweight[[i]], fweight[[i]])$p.value, 3)
     tab1[i, 6]=round(log(mean(fweight[[i]])/mean(iweight[[i]]))/329*100, 3)
     tab1[i, 7]=round((mean(fweight[[i]])-mean(iweight[[i]]))/329, 3)
     tab1[i, 8]=round((mean(fweight[[i]])-mean(iweight[[i]]))/mean(iweight[[i]])*100, 2)
     tab1[i, 9]=round(length(fweight[[i]])/12*100, 1)
     }
 ```
+
+    ## Warning in wilcox.test.default(iweight[[i]], fweight[[i]]): cannot compute exact
+    ## p-value with ties
+
+    ## Warning in wilcox.test.default(iweight[[i]], fweight[[i]]): cannot compute exact
+    ## p-value with ties
+
+    ## Warning in wilcox.test.default(iweight[[i]], fweight[[i]]): cannot compute exact
+    ## p-value with ties
+
+    ## Warning in wilcox.test.default(iweight[[i]], fweight[[i]]): cannot compute exact
+    ## p-value with ties
+
+    ## Warning in wilcox.test.default(iweight[[i]], fweight[[i]]): cannot compute exact
+    ## p-value with ties
 
 Fatty acids
 -----------
@@ -113,10 +128,10 @@ waerden.test(sedconctot, substring(names(sedconctot), 8, 10), console=T)
     ## substring(names(sedconctot), 8, 10),  means of the normal score
     ## 
     ##    sedconctot       std r
+    ## C   1.0657721 0.4260527 5
     ## E1 -0.8042747 0.6866840 5
     ## E2  0.2319592 0.4475282 4
     ## E3 -0.4470647 0.4572673 5
-    ## R   1.0657721 0.4260527 5
     ## 
     ## Post Hoc Analysis
     ## 
@@ -127,7 +142,7 @@ waerden.test(sedconctot, substring(names(sedconctot), 8, 10), console=T)
     ## Means of the normal score
     ## 
     ##         score groups
-    ## R   1.0657721      a
+    ## C   1.0657721      a
     ## E2  0.2319592      b
     ## E3 -0.4470647     bc
     ## E1 -0.8042747      c
