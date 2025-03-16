@@ -85,7 +85,49 @@ prct=allFA/rowSums(allFA)*100
 ## Concentrations table 
 conc=allFA/FA[-1,which(colnames(FA)=="C23.0")]*FA[-1,which(colnames(FA)=="StdC23")]/FA[-1,which(colnames(FA)=="Splmass")]
 conctot=rowSums(conc)
+
+### Let's compare total concentrations
+
+a=conctot[substring(names(conctot), 1, 2)=="MF"]
+b=substring(names(conctot), 8, 10)[substring(names(conctot), 1, 2)=="MF"]
+waerden.test(a, b, console=T)
 ```
+
+    ## 
+    ## Study: a ~ b
+    ## Van der Waerden (Normal Scores) test's
+    ## 
+    ## Value : 9.515253
+    ## Pvalue: 0.09019488
+    ## Degrees of Freedom:  5 
+    ## 
+    ## b,  means of the normal score
+    ## 
+    ##              a       std r
+    ## Fr1  0.5577380 1.2740822 6
+    ## Fr2  0.4743741 0.7886492 6
+    ## Fr3  0.2408837 0.6389620 6
+    ## Fr4 -0.8133245 0.7949283 6
+    ## Ma3 -0.2724875 0.6105197 6
+    ## Ma4 -0.1871839 0.8535851 6
+    ## 
+    ## Post Hoc Analysis
+    ## 
+    ## Alpha: 0.05 ; DF Error: 30 
+    ## 
+    ## Minimum Significant Difference: 1.008208 
+    ## 
+    ## Treatments with the same letter are not significantly different.
+    ## 
+    ## Means of the normal score
+    ## 
+    ##          score groups
+    ## Fr1  0.5577380      a
+    ## Fr2  0.4743741      a
+    ## Fr3  0.2408837      a
+    ## Ma4 -0.1871839     ab
+    ## Ma3 -0.2724875     ab
+    ## Fr4 -0.8133245      b
 
 ### Summary of sediments
 
