@@ -362,7 +362,7 @@ Note that the figure was further modified with a vectorial graphics editor to av
 
 ```{r echo=FALSE, fig.width=7.5, fig.height=12, fig.align="center"}
 
-#pdf(file="Fig5.pdf", width=7.5, height=12)
+#cairo_pdf(file="Fig5.pdf", width=7.5, height=12)
 
 par(las=1, mar=c(5,5,2,2), bty="n", mfrow=c(2,1), oma=c(0,0,2,0), cex.lab=1.5)
 
@@ -370,7 +370,7 @@ par(las=1, mar=c(5,5,2,2), bty="n", mfrow=c(2,1), oma=c(0,0,2,0), cex.lab=1.5)
 
 Htu=SI[c(which(substring(SI$Id, 2, 2)=="T")),]
 
-plot(Htu$X13C, Htu$X15N, bty="n", xlim=c(-24,-12), ylim=c(4, 12), xlab=expression(paste(delta^13, "C")), ylab=expression(paste(delta^15, "N")), type="n")
+plot(Htu$X13C, Htu$X15N, bty="n", xlim=c(-24,-12), ylim=c(4, 12), xlab=expression(paste(delta^13, "C (\u2030)")), ylab=expression(paste(delta^15, "N (\u2030)")), type="n")
 
 title(main=expression(bolditalic("Holothuria tubulosa")), line=1, cex.main=2)
   
@@ -393,7 +393,7 @@ legend("bottomright", legend=paste("n =", nrow(SI[-c(which(substring(SI$Id, 2, 2
 
 Hfo=SI[c(which(substring(SI$Id, 2, 2)=="F")),]
 
-plot(Hfo$X13C, Hfo$X15N, bty="n", xlim=c(-24,-12), ylim=c(4, 12), xlab=expression(paste(delta^13, "C")), ylab=expression(paste(delta^15, "N")), type="n")
+plot(Hfo$X13C, Hfo$X15N, bty="n", xlim=c(-24,-12), ylim=c(4, 12), xlab=expression(paste(delta^13, "C (\u2030)")), ylab=expression(paste(delta^15, "N (\u2030)")), type="n")
 
 title(main=expression(bolditalic("Holothuria forskali")), line=1, cex.main=2)
   
