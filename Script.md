@@ -1,6 +1,6 @@
 ### R Markdown
 
-This R Markdown document is made to support the findings of the paper "Biochemical signatures of Holothuria tubulosa and Holothuria forskali in co-culture with sea bass in the Frioul Islands (France)" by David et al. (2025).
+This R Markdown document is made to support the findings of the paper "Biochemical signatures of Holothuria tubulosa and Holothuria forskali (Echinodermata) in co-culture with sea bass in the Frioul Islands (France)" by David et al. (2025).
 
 Preparing the toolbox
 ---------------------

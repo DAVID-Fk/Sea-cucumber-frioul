@@ -14,7 +14,7 @@ Sys.setlocale("LC_TIME", "C")
 
 ### R Markdown
 
-This R Markdown document is made to support the findings of the paper "Biochemical signatures of Holothuria tubulosa and Holothuria forskali in co-culture with sea bass in the Frioul Islands (France)" by David et al. (2025). 
+This R Markdown document is made to support the findings of the paper "Biochemical signatures of Holothuria tubulosa and Holothuria forskali (Echinodermata) in co-culture with sea bass in the Frioul Islands (France)" by David et al. (2025). 
 
 
 ## Preparing the toolbox
@@ -126,6 +126,8 @@ par(las=1, mar=c(2,2,1,2), bty="n", mfrow=c(1,1))
 acp=dudi.pca(sedPr, scannf = FALSE, nf = 2)
 varPCA=get_pca_var(acp)
 varPCAhigh=which(varPCA$contrib[,1]>100/nrow(varPCA$contrib)*1.2|varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.2)
+varPCAlow=which(varPCA$contrib[,1]<100/nrow(varPCA$contrib)*1.2&varPCA$contrib[,2]<100/nrow(varPCA$contrib)*1.2)
+
 
 plot(acp$li[,c(1,2)], acp$co[,c(1,2)], type="n", ann=F, bty="n", axes=F, ylim=c(-5, 5), xlim=c(-6, 6))
 axis(1, pos=0, at=c(seq(-5, 5)[-6]), labels=c(seq(-5, 5)[-6]), tck=0.01, padj=-4)
@@ -137,6 +139,9 @@ title(ylab=paste("PC2 (", round((acp$eig/sum(acp$eig)*100)[2], 1), "%)", sep="")
 
 arrows(x0=0, y0=0, x1=acp$co[,1][varPCAhigh]*5, y1=acp$co[,2][varPCAhigh]*5, length=0.1, col="grey40", lty=5)
 text(acp$co[varPCAhigh,]*5.4, labels=colnames(sedPr)[varPCAhigh], col="grey40")
+
+arrows(x0=0, y0=0, x1=acp$co[,1][varPCAlow]*5, y1=acp$co[,2][varPCAlow]*5, length=0.1, col="grey90", lty=5)
+text(acp$co[varPCAlow,]*5.4, labels=colnames(sedPr)[varPCAlow], col="grey90")
 
 a=ordihull(acp$li, groups=substring(rownames(acp$li), 8, 10), lty=4, label=F, display=c("sites"), draw="polygon", col="white", alpha=200)
 
@@ -198,6 +203,8 @@ par(las=1, mar=c(2,2,2,2), bty="n", mfrow=c(2,1), oma=c(0,0,2,0))
   acp=dudi.pca(seacu[which(substring(rownames(seacu), 1, 2)=="HT"),], scannf = F, nf = 2, center=T, scale=T)
   varPCA=get_pca_var(acp)
   varPCAhigh=which(varPCA$contrib[,1]>100/nrow(varPCA$contrib)*1.8|varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.8)
+  varPCAlow=which(varPCA$contrib[,1]<100/nrow(varPCA$contrib)*1.8&varPCA$contrib[,2]<100/nrow(varPCA$contrib)*1.8)
+
 
   plot(acp$li[,c(1,2)], acp$co[,c(1,2)], type="n", ann=F, bty="n", axes=F, xlim=c(-8,7), ylim=c(-5,5))
   axis(1, pos=0, at=c(seq(-7, 7)[-8]), labels=c(seq(-7, 7)[-8]), tck=0.01, padj=-4)
@@ -211,6 +218,9 @@ par(las=1, mar=c(2,2,2,2), bty="n", mfrow=c(2,1), oma=c(0,0,2,0))
 
   arrows(x0=0, y0=0, x1=-acp$co[,1][varPCAhigh]*6, y1=-acp$co[,2][varPCAhigh]*6, length=0.1, col="grey40", lty=5)
   text(-acp$co[,1][varPCAhigh]*6.8, -acp$co[,2][varPCAhigh]*6.8, labels=names(varPCAhigh), col="grey40")
+  
+  arrows(x0=0, y0=0, x1=-acp$co[,1][varPCAlow]*6, y1=-acp$co[,2][varPCAlow]*6, length=0.1, col="grey90", lty=5)
+  text(-acp$co[,1][varPCAlow]*6.8, -acp$co[,2][varPCAlow]*6.8, labels=names(varPCAlow), col="grey90")
 
   a=ordihull(-acp$li, groups=substring(rownames(acp$li), 8, 10), lty=4, label=F, display=c("sites"), draw="polygon", col="white", alpha=200)
   points(-acp$li[, 1], -acp$li[, 2], pch=21, col="grey40", bg="grey80", cex=1.5)
@@ -229,6 +239,7 @@ par(las=1, mar=c(2,2,2,2), bty="n", mfrow=c(2,1), oma=c(0,0,2,0))
   acp=dudi.pca(seacu[which(substring(rownames(seacu), 1, 2)=="MT"),], scannf = F, nf = 2, center=T, scale=T)
   varPCA=get_pca_var(acp)
   varPCAhigh=which(varPCA$contrib[,1]>100/nrow(varPCA$contrib)*1.8|varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.8)
+  varPCAlow=which(varPCA$contrib[,1]<100/nrow(varPCA$contrib)*1.8&varPCA$contrib[,2]<100/nrow(varPCA$contrib)*1.8)
 
   
   plot(acp$li[,c(1,2)], acp$co[,c(1,2)], type="n", ann=F, bty="n", axes=F, xlim=c(-8,7), ylim=c(-5,5))
@@ -241,7 +252,9 @@ par(las=1, mar=c(2,2,2,2), bty="n", mfrow=c(2,1), oma=c(0,0,2,0))
   arrows(x0=0, y0=0, x1=acp$co[,1][varPCAhigh]*6, y1=acp$co[,2][varPCAhigh]*6, length=0.1, col="grey40", lty=5)
   text(acp$co[,1][varPCAhigh]*6.8, acp$co[,2][varPCAhigh]*6.8, labels=names(varPCAhigh), col="grey40")
 
-
+  arrows(x0=0, y0=0, x1=acp$co[,1][varPCAlow]*6, y1=acp$co[,2][varPCAlow]*6, length=0.1, col="grey90", lty=5)
+  text(acp$co[,1][varPCAlow]*6.8, acp$co[,2][varPCAlow]*6.8, labels=names(varPCAlow), col="grey90")
+  
 a=ordihull(acp$li, groups=substring(rownames(acp$li), 8, 10), lty=4, label=F, display=c("sites"), draw="polygon", col="white", alpha=200)
   points(acp$li[, 1], acp$li[, 2], pch=22, col="grey40", bg="grey80", cex=1.5)
 
@@ -274,6 +287,7 @@ par(las=1, mar=c(2,2,2,2), bty="n", mfrow=c(2,1), oma=c(0,0,2,0))
   acp=dudi.pca(seacu[which(substring(rownames(seacu), 1, 2)=="BF"),], scannf = F, nf = 2, center=T, scale=T)
   varPCA=get_pca_var(acp)
   varPCAhigh=which(varPCA$contrib[,1]>100/nrow(varPCA$contrib)*1.8|varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.8)
+    varPCAlow=which(varPCA$contrib[,1]<100/nrow(varPCA$contrib)*1.8&varPCA$contrib[,2]<100/nrow(varPCA$contrib)*1.8)
 
   
   plot(acp$li[,c(1,2)], acp$co[,c(1,2)], type="n", ann=F, bty="n", axes=F, xlim=c(-8,7), ylim=c(-6,5))
@@ -287,7 +301,10 @@ par(las=1, mar=c(2,2,2,2), bty="n", mfrow=c(2,1), oma=c(0,0,2,0))
   arrows(x0=0, y0=0, x1=acp$co[,1][varPCAhigh]*6, y1=acp$co[,2][varPCAhigh]*6, length=0.1, col="grey40", lty=5)
   text(acp$co[,1][varPCAhigh]*6.8, acp$co[,2][varPCAhigh]*6.8, labels=names(varPCAhigh), col="grey40")
 
-  a=ordihull(acp$li, groups=substring(rownames(acp$li), 8, 10), lty=4, label=F, display=c("sites"))
+  arrows(x0=0, y0=0, x1=-acp$co[,1][varPCAlow]*6, y1=-acp$co[,2][varPCAlow]*6, length=0.1, col="grey90", lty=5)
+  text(-acp$co[,1][varPCAlow]*6.8, -acp$co[,2][varPCAlow]*6.8, labels=names(varPCAlow), col="grey90")
+
+  a=ordihull(acp$li, groups=substring(rownames(acp$li), 8, 10), lty=4, label=F, display=c("sites"), draw="polygon", col="white", alpha=200)
   points(acp$li[, 1], acp$li[, 2], pch=21, col="grey40", bg="grey20", cex=1.5)
 
   centroid=t(summary(a))
@@ -303,7 +320,9 @@ par(las=1, mar=c(2,2,2,2), bty="n", mfrow=c(2,1), oma=c(0,0,2,0))
   
   acp=dudi.pca(seacu[which(substring(rownames(seacu), 1, 2)=="MF"),], scannf = F, nf = 2, center=T, scale=T)
   varPCA=get_pca_var(acp)
-    varPCAhigh=which(varPCA$contrib[,1]>100/nrow(varPCA$contrib)*1.8|varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.8)
+  varPCAhigh=which(varPCA$contrib[,1]>100/nrow(varPCA$contrib)*1.8|varPCA$contrib[,2]>100/nrow(varPCA$contrib)*1.8)
+  varPCAlow=which(varPCA$contrib[,1]<100/nrow(varPCA$contrib)*1.8&varPCA$contrib[,2]<100/nrow(varPCA$contrib)*1.8)
+
   
   plot(acp$li[,c(1,2)], acp$co[,c(1,2)], type="n", ann=F, bty="n", axes=F, xlim=c(-8,7), ylim=c(-6,5))
   axis(1, pos=0, at=c(seq(-8, 7)[-9]), labels=c(seq(-8, 7)[-9]), tck=0.01, padj=-4)
@@ -317,7 +336,10 @@ par(las=1, mar=c(2,2,2,2), bty="n", mfrow=c(2,1), oma=c(0,0,2,0))
   arrows(x0=0, y0=0, x1=acp$co[,1][varPCAhigh]*6, y1=-acp$co[,2][varPCAhigh]*6, length=0.1, col="grey40", lty=5)
   text(acp$co[,1][varPCAhigh]*6.8, -acp$co[,2][varPCAhigh]*6.8, labels=names(varPCAhigh), col="grey40")
 
-  a=ordihull(cbind(acp$li[, 1], -acp$li[, 2]), groups=substring(rownames(acp$li), 8, 10), lty=4, label=F, display=c("sites"))
+  arrows(x0=0, y0=0, x1=acp$co[,1][varPCAlow]*6, y1=acp$co[,2][varPCAlow]*6, length=0.1, col="grey90", lty=5)
+  text(acp$co[,1][varPCAlow]*6.8, acp$co[,2][varPCAlow]*6.8, labels=names(varPCAlow), col="grey90")
+  
+  a=ordihull(cbind(acp$li[, 1], -acp$li[, 2]), groups=substring(rownames(acp$li), 8, 10), lty=4, label=F, display=c("sites"), draw="polygon", col="white", alpha=200)
   points(acp$li[, 1], -acp$li[, 2], pch=22, col="grey40", bg="grey20", cex=1.5)
 
   centroid=t(summary(a))
